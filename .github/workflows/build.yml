@@ -1,0 +1,46 @@
+name: Build OpenIPC Firmware
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch: # 允许你在网页上手动点击“运行”按钮触发编译
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Free disk space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: false
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y automake autotools-dev bc build-essential curl fzf git libtool rsync unzip mc tree python-is-python3
+
+    - name: Run build for T31ZX
+      run: |
+        # 这里模拟你的编译选择。
+        # OpenIPC builder 通常支持通过命令行参数或环境变量非交互式构建。
+        # 如果需要先配置，可以根据 builder 仓库的脚本传入对应的芯片参数。
+        # 例如（请根据实际 builder 脚本支持的传参方式微调）：
+        make BOARD=t31zx
+        # 或者如果你需要先通过 configure 选择，可以参考 builder 的自动化文档。
+        # 常见命令如：./builder.sh --board t31zx 等，具体可查看仓库根目录的 Makefile 或说明。
+
+    - name: Archive firmware artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: openipc-t31zx-firmware
+        path: output/images/*

@@ -1,3 +1,4 @@
+
 name: Build OpenIPC Firmware
 
 on:
@@ -51,59 +52,79 @@ jobs:
             python-is-python3 \
             tree
 
-      - name: Show builder information
+      - name: Verify AP6PCM03 configuration
+        shell: bash
         run: |
-          echo "===== Builder repository ====="
+          set -euo pipefail
+
+          DEVICE="t31_ultimate_360-ap6pcm03"
+
+          DEFCONFIG="devices/${DEVICE}/br-ext-chip-ingenic/configs/${DEVICE}_defconfig"
+          CUSTOMIZER="devices/${DEVICE}/general/overlay/usr/share/openipc/customizer.sh"
+          EXCLUDES="devices/${DEVICE}/general/scripts/excludes/t31_ultimate.list"
+
+          echo "===== Builder version ====="
           git log -1 --oneline
           echo
-          echo "===== Devices matching T31ZX / GC4653 / GCA50 / AP6PCM03 ====="
-          find devices -type f | grep -Ei 'gca50|ap6pcm03|t31zx|gc4653' || true
+
+          echo "===== Verify required files ====="
+
+          for FILE in "$DEFCONFIG" "$CUSTOMIZER" "$EXCLUDES"; do
+            if [ ! -f "$FILE" ]; then
+              echo "ERROR: Required file not found: $FILE"
+              exit 1
+            fi
+            echo "OK: $FILE"
+          done
+
           echo
-          echo "===== Device directories ====="
-          find devices -name '*_defconfig' | sort | grep -Ei 'gca50|ap6pcm03|t31zx|gc4653' || true
+          echo "===== Device configuration ====="
+          grep -E 'BR2_OPENIPC_(SOC_VENDOR|SOC_MODEL|SOC_FAMILY|SNS_MODEL|VARIANT|FLASH_SIZE)=' "$DEFCONFIG"
 
-      - name: Build GCA50
+          echo
+          echo "===== Exclusion list ====="
+          cat "$EXCLUDES"
+
+          echo
+          echo "===== Customizer ====="
+          cat "$CUSTOMIZER"
+
+      - name: Build AP6PCM03
+        shell: bash
         run: |
-          set -e
+          set -euo pipefail
 
-          DEVICE="$(find devices -name '*_defconfig' \
-            | grep -Ei 'gca50|ap6pcm03' \
-            | head -n 1 \
-            | sed 's#^.*/##' \
-            | sed 's/_defconfig$//')"
-
-          if [ -z "$DEVICE" ]; then
-            echo "ERROR: Cannot find GCA50/AP6PCM03 device definition."
-            echo
-            echo "Available T31ZX devices:"
-            find devices -name '*_defconfig' | sort | grep -i t31zx || true
-            exit 1
-          fi
+          DEVICE="t31_ultimate_360-ap6pcm03"
 
           echo "========================================"
-          echo "Selected device: $DEVICE"
+          echo "Building device: $DEVICE"
           echo "========================================"
 
           ./builder.sh "$DEVICE"
 
       - name: Find firmware images
+        if: always()
+        shell: bash
         run: |
           echo "===== Build output ====="
 
-          find archive -type f -maxdepth 6 \
-            \( \
-              -name 'uImage.*' \
-              -o -name 'rootfs.squashfs.*' \
-              -o -name '*.tgz' \
-              -o -name 'sizes.*.json' \
-            \) \
-            -print | sort
+          if [ -d archive ]; then
+            find archive -maxdepth 6 -type f \
+              \( \
+                -name 'uImage.*' \
+                -o -name 'rootfs.squashfs.*' \
+                -o -name '*.tgz' \
+                -o -name 'sizes.*.json' \
+              \) -print | sort
+          else
+            echo "No archive directory found."
+          fi
 
       - name: Upload firmware artifacts
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: openipc-ap6pcm03-gca50
-          path: |
-            archive/**
+          name: openipc-ap6pcm03
+          path: archive/**
           if-no-files-found: error
           retention-days: 30

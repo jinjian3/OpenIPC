@@ -1,0 +1,21 @@
+#!/bin/sh
+# AP6PCM03: SDIO Wi-Fi prep (same settings as stock firmware)
+start() {
+	# power / enable GPIOs, as in stock rc.local
+	for n in 62 53; do
+		[ -d /sys/class/gpio/gpio$n ] || echo $n > /sys/class/gpio/export
+		echo out > /sys/class/gpio/gpio$n/direction
+		echo 1 > /sys/class/gpio/gpio$n/value
+	done
+	# MSC1 pins PA8-11, PA16, PA17 -> function 3 (stock kernel table "msc1-pA")
+	devmem 0x10017018 32 0x30f00
+	devmem 0x10017028 32 0x30f00
+	devmem 0x10017034 32 0x30f00
+	devmem 0x10017044 32 0x30f00
+	devmem 0x100170F0 32 0
+}
+case "$1" in
+	start|restart|reload) start ;;
+	stop) ;;
+	*) echo "Usage: $0 {start|stop|restart|reload}"; exit 1 ;;
+esac

@@ -7,8 +7,9 @@ start() {
 		echo out > /sys/class/gpio/gpio$n/direction
 		echo 1 > /sys/class/gpio/gpio$n/value
 	done
-	# 52 = PTZ motor power (off until "ptz" runs), 63 = speaker amp (off by default)
-	for n in 52 63; do
+	# 52 = PTZ motor power (off until "ptz" runs). 63 (speaker amp) and 59/60/14 (IR-cut,
+	# IR LED) are claimed by majestic itself, see customizer.sh
+	for n in 52; do
 		[ -d /sys/class/gpio/gpio$n ] || echo $n > /sys/class/gpio/export
 		echo out > /sys/class/gpio/gpio$n/direction
 		echo 0 > /sys/class/gpio/gpio$n/value

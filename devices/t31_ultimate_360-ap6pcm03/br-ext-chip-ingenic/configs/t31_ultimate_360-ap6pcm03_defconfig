@@ -22,6 +22,7 @@ BR2_LINUX_KERNEL_CUSTOM_TARBALL_LOCATION="https://github.com/openipc/linux/archi
 BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
 BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(EXTERNAL_VENDOR)/board/$(OPENIPC_SOC_FAMILY)/t31.generic.config"
 BR2_LINUX_KERNEL_LZMA=y
+BR2_LINUX_KERNEL_PATCH="$(EXTERNAL_VENDOR)/board/t31/patches/0001-swan-sd-card-detect-pb29.patch"
 
 # Filesystem
 BR2_PACKAGE_BUSYBOX_CONFIG="$(BR2_EXTERNAL)/package/busybox/busybox.config"

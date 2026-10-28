@@ -1,7 +1,7 @@
 #!/bin/sh
 # AP6PCM03 pan/tilt control (ULN2803 stepper drivers, pins from the stock firmware)
 #   ptz left|right|up|down [steps]   (default 100 steps)
-# GPIO 52 = motor power, GPIO 62 = motor select (0 = pan/left-right, 1 = tilt/up-down),
+# GPIO 52 = sub-board power (kept on at boot, also feeds the Ethernet PHY), GPIO 62 = motor select (0 = pan/left-right, 1 = tilt/up-down),
 # GPIO 58,57,50,49 = stepper phases (shared by both motors).
 # Direction names are a first guess: if a direction is reversed, swap its name below.
 G=/sys/class/gpio
@@ -30,14 +30,13 @@ for p in $PHASES; do out $p 0; done
 
 cleanup() {
 	for p in $PHASES; do echo 0 > $G/gpio$p/value; done
-	echo 0 > $G/gpio52/value      # motor power off (no heating)
 	echo 1 > $G/gpio62/value      # back to the boot-time state
 }
 trap cleanup EXIT INT TERM
 
 out 62 $SEL
 out 52 1
-usleep 50000
+usleep 50000   # in case something switched the sub-board off
 
 i=0
 while [ $i -lt $STEPS ]; do

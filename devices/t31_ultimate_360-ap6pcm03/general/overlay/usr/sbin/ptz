@@ -1,0 +1,50 @@
+#!/bin/sh
+# AP6PCM03 pan/tilt control (ULN2803 stepper drivers, pins from the stock firmware)
+#   ptz left|right|up|down [steps]   (default 100 steps)
+# GPIO 52 = motor power, GPIO 62 = motor select (0 = pan/left-right, 1 = tilt/up-down),
+# GPIO 58,57,50,49 = stepper phases (shared by both motors).
+# Direction names are a first guess: if a direction is reversed, swap its name below.
+G=/sys/class/gpio
+PHASES="58 57 50 49"
+DELAY=8000   # microseconds per step (larger = slower)
+
+usage() { echo "Usage: ptz left|right|up|down [steps]"; exit 1; }
+[ -n "$1" ] || usage
+STEPS=${2:-100}
+case "$STEPS" in ''|*[!0-9]*) usage ;; esac
+
+case "$1" in
+	left)  SEL=0; ORDER="58 57 50 49" ;;
+	right) SEL=0; ORDER="49 50 57 58" ;;
+	up)    SEL=1; ORDER="58 57 50 49" ;;
+	down)  SEL=1; ORDER="49 50 57 58" ;;
+	*) usage ;;
+esac
+
+# one move at a time
+exec 9>/tmp/ptz.lock
+if command -v flock >/dev/null 2>&1; then flock -n 9 || { echo "ptz: busy"; exit 1; }; fi
+
+out() { [ -d $G/gpio$1 ] || echo $1 > $G/export; echo out > $G/gpio$1/direction; echo $2 > $G/gpio$1/value; }
+for p in $PHASES; do out $p 0; done
+
+cleanup() {
+	for p in $PHASES; do echo 0 > $G/gpio$p/value; done
+	echo 0 > $G/gpio52/value      # motor power off (no heating)
+	echo 1 > $G/gpio62/value      # back to the boot-time state
+}
+trap cleanup EXIT INT TERM
+
+out 62 $SEL
+out 52 1
+usleep 50000
+
+i=0
+while [ $i -lt $STEPS ]; do
+	for p in $ORDER; do
+		for q in $PHASES; do echo 0 > $G/gpio$q/value; done
+		echo 1 > $G/gpio$p/value
+		usleep $DELAY
+	done
+	i=$((i+1))
+done

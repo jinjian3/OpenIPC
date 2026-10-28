@@ -9,7 +9,7 @@
 
 cli -s .system.plugins true
 cli -s .video0.codec h264
-chmod +x /etc/init.d/S39wifiprep /etc/wireless/sdio
+chmod +x /etc/init.d/S39wifiprep /etc/wireless/sdio /usr/sbin/ptz
 cli -s .audio.enabled true
 
 fw_setenv wlandev atbm603x-generic

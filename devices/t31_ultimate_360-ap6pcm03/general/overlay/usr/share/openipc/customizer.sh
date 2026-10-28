@@ -12,6 +12,14 @@ cli -s .video0.codec h264
 chmod +x /etc/init.d/S39wifiprep /etc/wireless/sdio /usr/sbin/ptz
 cli -s .audio.enabled true
 
+# Day/night: IR-cut coil pins (pulse driven), IR LED, speaker amplifier enable.
+# Pin numbers come from the stock firmware (libysx_vid.so); if the picture is pink
+# in daylight, swap irCutPin1 and irCutPin2.
+cli -s .nightMode.irCutPin1 59
+cli -s .nightMode.irCutPin2 60
+cli -s .nightMode.backlightPin 14
+cli -s .audio.speakerPin 63
+
 fw_setenv wlandev atbm603x-generic
 fw_setenv netmode wifi
 fw_setenv osmem 66M@0x0

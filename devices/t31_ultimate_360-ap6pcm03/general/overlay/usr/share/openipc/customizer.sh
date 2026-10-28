@@ -9,7 +9,7 @@
 
 cli -s .system.plugins true
 cli -s .video0.codec h264
-chmod +x /etc/init.d/S39wifiprep /etc/wireless/sdio /usr/sbin/ptz
+# executable bits and pin setup: see muxes.sh (runs on every boot)
 cli -s .audio.enabled true
 
 # Day/night: IR-cut coil pins (pulse driven), IR LED, speaker amplifier enable.

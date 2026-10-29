@@ -24,7 +24,7 @@ cli -s .nightMode.backlightPin 14
 cli -s .audio.speakerPin 63
 
 fw_setenv wlandev atbm603x-generic
-fw_setenv netmode wifi
+fw_setenv netmode dual
 fw_setenv osmem 66M@0x0
 fw_setenv rmem 62M@0x4200000
 

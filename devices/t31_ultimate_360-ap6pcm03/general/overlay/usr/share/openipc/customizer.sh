@@ -12,6 +12,9 @@ cli -s .video0.codec h264
 # executable bits and pin setup: see muxes.sh (runs on every boot)
 cli -s .audio.enabled true
 
+cli -s .image.mirror true
+cli -s .image.flip true
+
 # Day/night: IR-cut coil pins (pulse driven), IR LED, speaker amplifier enable.
 # Pin numbers come from the stock firmware (libysx_vid.so); if the picture is pink
 # in daylight, swap irCutPin1 and irCutPin2.

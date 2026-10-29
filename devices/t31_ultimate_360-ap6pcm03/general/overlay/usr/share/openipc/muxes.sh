@@ -17,6 +17,26 @@ for n in 62 53 52; do
 	echo 1 > /sys/class/gpio/gpio$n/value
 done
 
+# LED: 51 = blue, 54 = green, high = on
+for n in 51 54; do
+	[ -d /sys/class/gpio/gpio$n ] || echo $n > /sys/class/gpio/export
+	echo out > /sys/class/gpio/gpio$n/direction
+done
+echo 1 > /sys/class/gpio/gpio51/value
+echo 0 > /sys/class/gpio/gpio54/value
+(
+	i=0
+	while [ $i -lt 90 ]; do
+		if ip route | grep -q '^default'; then
+			echo 0 > /sys/class/gpio/gpio51/value
+			echo 1 > /sys/class/gpio/gpio54/value
+			break
+		fi
+		i=$((i + 1))
+		sleep 1
+	done
+) >/dev/null 2>&1 &
+
 # Wi-Fi: MSC1 pins PA8-11, PA16, PA17 -> function 3 (stock kernel table "msc1-pA")
 devmem 0x10017018 32 0x30f00
 devmem 0x10017028 32 0x30f00
